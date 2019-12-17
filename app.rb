@@ -1,20 +1,19 @@
 require 'csv'
+require_relative 'app/converter'
+require_relative 'app/width_calculator'
 
-csv = CSV.read('csv.csv', col_sep: ';', row_sep: :auto, headers: true, encoding: 'ASCII')
+Dir[File.join(__dir__, 'app','services', '*.rb')].each { |file| require file }
 
-TYPES = csv.headers
-puts TYPES
-
-integer_longest_value = '1'
-string_longest_value = ''
-money_longest_value = '0.0'
-
-csv.each do |line|
-  line[TYPES.index('int')].split(' ').each { |a| integer_longest_value = a if a.length > integer_longest_value.length }
-  line[TYPES.index('string')].split(' ').each { |a| string_longest_value = a if a.length > string_longest_value.length }
-  line[TYPES.index('money')].split(' ').each { |a| money_longest_value = a if a.length > money_longest_value.length }
+module App
+  INT_MIN = 1
+  STR_MIN = 0
+  MONEY_MIN = 3
+  OUTPUT = []
 end
 
-puts integer_longest_value.length
-puts string_longest_value.length
-puts money_longest_value.length
+csv = CSVReader.new.execute
+
+width_calculator = App::WidthCalculator.new(csv)
+width_calculator.execute
+
+App::Converter.new(csv, width_calculator).execute
